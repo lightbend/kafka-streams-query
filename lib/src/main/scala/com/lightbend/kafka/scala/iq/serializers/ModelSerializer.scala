@@ -1,14 +1,12 @@
 package com.lightbend.kafka.scala.iq
 package serializers
 
-import org.apache.kafka.common.serialization.{Serializer, Deserializer}
-
 import java.util.Map
 
 import io.circe._, io.circe.generic.auto._, io.circe.parser._, io.circe.syntax._
 
 
-class ModelSerializer[T : Encoder : Decoder] extends Serializer[T] with Deserializer[T] {
+class ModelSerializer[T : Encoder : Decoder] extends SerDeserializer[T] {
 
   override def configure(configs: Map[String, _], isKey: Boolean) = {}
 
