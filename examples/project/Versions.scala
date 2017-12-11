@@ -1,8 +1,10 @@
 object Versions {
   val ksVersion = "0.0.1"
   val kqVersion = "0.0.1"
-  val scalaVersion = "2.12.4"
-  val crossScalaVersions = Seq(scalaVersion, "2.11.11")
+  val scala2_12Version = "2.12.4"
+  val scala2_11Version = "2.11.11"
+  val scalaVersion = scala2_12Version
+  val crossScalaVersions = Seq(scala2_12Version, scala2_11Version)
   val algebirdVersion = "0.13.0"
   val chillVersion = "0.9.2"
   val bijectionVersion = "0.9.5"

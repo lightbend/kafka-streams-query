@@ -5,7 +5,7 @@ name := QueryExampleBuild.NamePrefix + "root"
 
 version in ThisBuild := "0.0.1"
 
-scalaVersion := Versions.scalaVersion
+scalaVersion := Versions.scala2_11Version
 
 def appProject(id: String)(base:String = id) = Project(id, base = file(base))
   .enablePlugins(JavaAppPackaging)
