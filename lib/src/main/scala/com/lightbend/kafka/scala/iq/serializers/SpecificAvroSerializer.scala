@@ -8,13 +8,11 @@ import org.apache.avro.specific.SpecificRecordBase
 
 import java.util.{ Map => JMap }
 
-class SpecificAvroSerializer[T <: org.apache.avro.specific.SpecificRecordBase](injection: Injection[T, Array[Byte]]) extends Serializer[T] {
+class SpecificAvroSerializer[T <: SpecificRecordBase](injection: Injection[T, Array[Byte]]) extends Serializer[T] {
 
   override def configure(configs: JMap[String, _], isKey: Boolean): Unit = ()
 
-  override def serialize(topic: String, record: T): Array[Byte] = {
-    injection.apply(record)
-  }
+  override def serialize(topic: String, record: T): Array[Byte] =  injection.apply(record)
 
   override def close(): Unit = ()
 }
