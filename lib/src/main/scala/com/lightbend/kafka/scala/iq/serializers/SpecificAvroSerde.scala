@@ -1,4 +1,5 @@
-package com.lightbend.kafka.scala.iq.serializers
+package com.lightbend.kafka.scala.iq
+package serializers
 
 import org.apache.kafka.common.serialization.{ Deserializer, Serde, Serializer }
 

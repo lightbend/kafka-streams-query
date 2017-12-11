@@ -1,4 +1,5 @@
-package com.lightbend.kafka.scala.iq.serializers
+package com.lightbend.kafka.scala.iq
+package serializers
 
 import com.twitter.bijection.Injection
 import org.apache.avro.specific.SpecificRecordBase
