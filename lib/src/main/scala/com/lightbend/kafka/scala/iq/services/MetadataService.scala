@@ -22,7 +22,7 @@ class MetadataService(val streams: KafkaStreams) extends LazyLogging {
    */
   def streamsMetadata(): List[HostStoreInfo] = {
     // Get metadata for all of the instances of this Kafka Streams application
-    mapInstancesToHostStoreInfo(streams.allMetadata().asScala.toList)
+    streams.allMetadata().asScala.toList.map(streamsMetadataToHostStoreInfo)
   }
 
   /**
@@ -33,7 +33,7 @@ class MetadataService(val streams: KafkaStreams) extends LazyLogging {
    */
   def streamsMetadataForStore(store: String): List[HostStoreInfo] = {
     // Get metadata for all of the instances of this Kafka Streams application hosting the store
-    mapInstancesToHostStoreInfo(streams.allMetadataForStore(store).asScala.toList)
+    streams.allMetadataForStore(store).asScala.toList.map(streamsMetadataToHostStoreInfo)
   }
 
   /**
@@ -53,9 +53,7 @@ class MetadataService(val streams: KafkaStreams) extends LazyLogging {
     }
   }
 
-  private def mapInstancesToHostStoreInfo(metadatas: List[StreamsMetadata]): List[HostStoreInfo] = {
-    metadatas.map(metadata => new HostStoreInfo(metadata.host(),
-                                                metadata.port(),
-                                                metadata.stateStoreNames().asScala.toSet))
+  private[services] val streamsMetadataToHostStoreInfo: StreamsMetadata => HostStoreInfo = metadata => {
+    HostStoreInfo(metadata.host(), metadata.port(), metadata.stateStoreNames().asScala.toSet)
   }
 }
