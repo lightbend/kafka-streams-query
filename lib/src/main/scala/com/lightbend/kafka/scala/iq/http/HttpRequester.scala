@@ -18,8 +18,12 @@ import com.typesafe.scalalogging.LazyLogging
 import services.HostStoreInfo
 import java.io.IOException
 
-class HttpRequester(private implicit val actorSystem: ActorSystem, private implicit val mat: ActorMaterializer,
-                    private implicit val executionContext: ExecutionContext) extends LazyLogging {
+class HttpRequester(val actorSystem: ActorSystem, val mat: ActorMaterializer,
+                    val executionContext: ExecutionContext) extends LazyLogging {
+
+  private implicit val as: ActorSystem = actorSystem
+  private implicit val mt: ActorMaterializer = mat
+  private implicit val ec: ExecutionContext = executionContext
 
   private def apiRequest(path: String, host: HostStoreInfo): Future[HttpResponse] =
     Http().singleRequest(HttpRequest(uri = s"http://${host.host}:${host.port}$path"))

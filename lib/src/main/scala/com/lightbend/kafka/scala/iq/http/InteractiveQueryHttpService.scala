@@ -26,12 +26,15 @@ import scala.util.{ Try, Success, Failure }
 import com.typesafe.scalalogging.LazyLogging
 
 
-abstract class InteractiveQueryHttpService(
-  hostInfo: HostInfo,
-  implicit val actorSystem: ActorSystem,
-  implicit val actorMaterializer: ActorMaterializer,
-  implicit val ec: ExecutionContext)
-  extends Directives with FailFastCirceSupport with LazyLogging {
+abstract class InteractiveQueryHttpService(hostInfo: HostInfo,
+    actorSystem: ActorSystem,
+    actorMaterializer: ActorMaterializer,
+    ec: ExecutionContext)
+    extends Directives with FailFastCirceSupport with LazyLogging {
+
+  implicit val _actorSystem = actorSystem
+  implicit val _actorMaterializer = actorMaterializer
+  implicit val _ec = ec
 
   val myExceptionHandler = ExceptionHandler {
     case ex: Exception =>
@@ -40,7 +43,6 @@ abstract class InteractiveQueryHttpService(
         complete(HttpResponse(InternalServerError, entity = "Request Failed!"))
       }
   }
-
 
   // define the routes
   val routes: Flow[HttpRequest, HttpResponse, Any]
