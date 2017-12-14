@@ -4,7 +4,8 @@ import Keys._
 object Common {
 
   val settings: Seq[Def.Setting[_]] = Seq(
-    scalaVersion := "2.12.4",
+    resolvers += "confluent" at "http://packages.confluent.io/maven/",
+    scalaVersion := Versions.scalaVersion,
     scalacOptions ++= Seq(
       "-deprecation",                      // Emit warning and location for usages of deprecated APIs.
       "-encoding", "utf-8",                // Specify character encoding used by source files.
