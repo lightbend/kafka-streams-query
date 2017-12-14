@@ -26,16 +26,15 @@ import scala.util.{ Try, Success, Failure }
 import com.typesafe.scalalogging.LazyLogging
 
 
-abstract class InteractiveQueryHttpService(
-  hostInfo: HostInfo, 
-  actorSystem: ActorSystem, 
-  actorMaterializer: ActorMaterializer, 
-  ec: ExecutionContext) 
-  extends Directives with FailFastCirceSupport with LazyLogging {
+abstract class InteractiveQueryHttpService(hostInfo: HostInfo,
+    actorSystem: ActorSystem,
+    actorMaterializer: ActorMaterializer,
+    ec: ExecutionContext)
+    extends Directives with FailFastCirceSupport with LazyLogging {
 
-  implicit val system = actorSystem
-  implicit val materializer = actorMaterializer
-  implicit val executionContext = ec
+  implicit val _actorSystem = actorSystem
+  implicit val _actorMaterializer = actorMaterializer
+  implicit val _ec = ec
 
   val myExceptionHandler = ExceptionHandler {
     case ex: Exception =>
@@ -45,10 +44,9 @@ abstract class InteractiveQueryHttpService(
       }
   }
 
-
   // define the routes
   val routes: Flow[HttpRequest, HttpResponse, Any]
-  var bindingFuture: Future[Http.ServerBinding] = null
+  var bindingFuture: Future[Http.ServerBinding] = _
 
 
   // start the http server
@@ -61,7 +59,7 @@ abstract class InteractiveQueryHttpService(
 
       case Failure(ex) =>
         logger.error(s"Failed to bind to ${hostInfo.host}:${hostInfo.port}!", ex)
-        system.terminate()
+        actorSystem.terminate()
     }
   }
 
@@ -71,7 +69,7 @@ abstract class InteractiveQueryHttpService(
     logger.info("Stopping the http server")
     bindingFuture
       .flatMap(_.unbind())
-      .onComplete(_ => system.terminate())
+      .onComplete(_ => actorSystem.terminate())
   }
 }
 

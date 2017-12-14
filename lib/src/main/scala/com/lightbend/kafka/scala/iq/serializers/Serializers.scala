@@ -2,8 +2,10 @@ package com.lightbend.kafka.scala.iq
 package serializers
 
 import org.apache.kafka.streams.kstream.Windowed
-import org.apache.kafka.common.serialization.{ Serde, Serdes, StringSerializer, StringDeserializer, ByteArraySerializer, ByteArrayDeserializer }
-import org.apache.kafka.streams.kstream.internals.{ WindowedSerializer, WindowedDeserializer }
+import org.apache.kafka.common.serialization._
+import org.apache.kafka.streams.kstream.internals.{WindowedDeserializer, WindowedSerializer}
+
+trait SerDeserializer[T] extends Serializer[T] with Deserializer[T]
 
 trait Serializers {
   final val stringSerializer = new StringSerializer()

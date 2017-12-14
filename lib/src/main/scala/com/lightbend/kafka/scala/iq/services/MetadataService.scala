@@ -6,7 +6,7 @@ import org.apache.kafka.streams.KafkaStreams
 import org.apache.kafka.streams.state.StreamsMetadata
 
 import scala.collection.JavaConverters._
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 import com.typesafe.scalalogging.LazyLogging
 
 case class HostStoreInfo(host: String, port: Int, storeNames: Set[String])
@@ -22,7 +22,7 @@ class MetadataService(val streams: KafkaStreams) extends LazyLogging {
    */
   def streamsMetadata(): List[HostStoreInfo] = {
     // Get metadata for all of the instances of this Kafka Streams application
-    mapInstancesToHostStoreInfo(streams.allMetadata().asScala.toList)
+    streams.allMetadata().asScala.toList.map(streamsMetadataToHostStoreInfo)
   }
 
   /**
@@ -33,7 +33,7 @@ class MetadataService(val streams: KafkaStreams) extends LazyLogging {
    */
   def streamsMetadataForStore(store: String): List[HostStoreInfo] = {
     // Get metadata for all of the instances of this Kafka Streams application hosting the store
-    mapInstancesToHostStoreInfo(streams.allMetadataForStore(store).asScala.toList)
+    streams.allMetadataForStore(store).asScala.toList.map(streamsMetadataToHostStoreInfo)
   }
 
   /**
@@ -43,19 +43,17 @@ class MetadataService(val streams: KafkaStreams) extends LazyLogging {
    * @param key     The key to find
    * @return {@link HostStoreInfo}
    */
-  def streamsMetadataForStoreAndKey[K](store: String, key: K, serializer: Serializer[K]): Try[HostStoreInfo] = Try {
+  def streamsMetadataForStoreAndKey[K](store: String, key: K, serializer: Serializer[K]): Try[HostStoreInfo] = {
     // Get metadata for the instances of this Kafka Streams application hosting the store and
     // potentially the value for key
     logger.info(s"Finding streams metadata for $store, $key, $serializer")
     streams.metadataForKey(store, key, serializer) match {
-      case null => throw new IllegalArgumentException(s"Metadata for key $key not found in $store")
-      case metadata => new HostStoreInfo(metadata.host, metadata.port, metadata.stateStoreNames.asScala.toSet)
+      case null => Failure(new IllegalArgumentException(s"Metadata for key $key not found in $store"))
+      case metadata => Success(new HostStoreInfo(metadata.host, metadata.port, metadata.stateStoreNames.asScala.toSet))
     }
   }
 
-  def mapInstancesToHostStoreInfo(metadatas: List[StreamsMetadata]): List[HostStoreInfo] = {
-    metadatas.map(metadata => new HostStoreInfo(metadata.host(),
-                                                metadata.port(),
-                                                metadata.stateStoreNames().asScala.toSet))
+  private[services] val streamsMetadataToHostStoreInfo: StreamsMetadata => HostStoreInfo = metadata => {
+    HostStoreInfo(metadata.host(), metadata.port(), metadata.stateStoreNames().asScala.toSet)
   }
 }

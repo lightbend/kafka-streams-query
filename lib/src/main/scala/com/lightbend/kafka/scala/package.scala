@@ -11,9 +11,12 @@ import akka.actor.Scheduler
 package object iq {
   final val CHARSET = Charset.forName("UTF-8")
 
-  def translateHostInterface(host: String) = host match {
-    case "0.0.0.0" => java.net.InetAddress.getLocalHost.getHostAddress
-    case x => x
+  def translateHostInterface(host: String) = {
+    if (host == "0.0.0.0") {
+      java.net.InetAddress.getLocalHost.getHostAddress
+    } else {
+      host
+    }
   }
 
   /**

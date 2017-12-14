@@ -19,7 +19,7 @@ import services.HostStoreInfo
 import java.io.IOException
 
 class HttpRequester(val actorSystem: ActorSystem, val mat: ActorMaterializer,
-  val executionContext: ExecutionContext) extends LazyLogging {
+                    val executionContext: ExecutionContext) extends LazyLogging {
 
   private implicit val as: ActorSystem = actorSystem
   private implicit val mt: ActorMaterializer = mat
@@ -28,20 +28,19 @@ class HttpRequester(val actorSystem: ActorSystem, val mat: ActorMaterializer,
   private def apiRequest(path: String, host: HostStoreInfo): Future[HttpResponse] =
     Http().singleRequest(HttpRequest(uri = s"http://${host.host}:${host.port}$path"))
 
-
   def queryFromHost[V](host: HostStoreInfo, 
     path: String)(implicit u: Unmarshaller[ResponseEntity, V]): Future[V] = {
     apiRequest(path, host).flatMap { response =>
       response.status match {
-        case OK         => Unmarshal(response.entity).to[V]
+        case OK          => Unmarshal(response.entity).to[V]
          
-        case BadRequest => {
+        case BadRequest  => {
           logger.error(s"$path: incorrect path")
           Future.failed(new IOException(s"$path: incorrect path"))
         }
 
-        case _          => Unmarshal(response.entity).to[String].flatMap { entity =>
-          val error = s"state fetch request failed with status code ${response.status} and entity $entity"
+        case otherStatus => Unmarshal(response.entity).to[String].flatMap { entity =>
+          val error = s"state fetch request failed with status code ${otherStatus} and entity $entity"
           logger.error(error)
           Future.failed(new IOException(error))
         }
