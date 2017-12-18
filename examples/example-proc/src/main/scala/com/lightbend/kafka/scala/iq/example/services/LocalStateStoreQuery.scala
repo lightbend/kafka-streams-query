@@ -18,6 +18,6 @@ class AppStateStoreQuery[K, V] extends LocalStateStoreQuery[K, V] {
     (implicit ex: ExecutionContext, mk: Hash128[K], as: ActorSystem): Future[Boolean] = {
 
     val q = new BFStoreType[K]()(mk)
-    retry(streams.store(store, q), delayBetweenRetries, maxRetryCount)(ex, as.scheduler).map(_.read(value))
+    retry(streams.store(store, q), DelayBetweenRetries, MaxRetryCount)(ex, as.scheduler).map(_.read(value))
   }
 }
