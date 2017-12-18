@@ -18,7 +18,7 @@ To run the application, do the following steps.
 
 ### Build the Libraries
 
-You'll need to build the Scala API library, `kafka-scala-s`, and the interactive queries library, `kafka-scala-q`. Change to each of those directories and run the SBT command `sbt publishLocal`, which compiles the code, creates archives, and "publishes" them to your local _ivy2_ repository. Note that Scala 2.12.4 and Kafka 1.0.0 are used.
+This example application depends on [kafka-streams-scala](https://github.com/lightbend/kafka-streams-scala) and [kafka-streams-query](https://github.com/lightbend/kafka-streams-query/tree/develop/lib). Ensure that you have the proper versions of these libraries in your classpath. Note that in this example Scala 2.12.4 and Kafka 1.0.0 are used.
 
 ### Start ZooKeeper and Kafka
 
