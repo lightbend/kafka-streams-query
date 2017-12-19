@@ -12,6 +12,20 @@ However Kafka Streams documentation also makes it clear that the query layer for
 
 The goal of this small library is to offer such a query layer based on [akka-http](https://doc.akka.io/docs/akka-http/current/scala/http/).
 
+## Quick Start
+
+`kafka-streams-query` is published and cross-built for Scala `2.11`, and `2.12`, so you can just add the following to your build:
+
+```scala
+val kafka_streams_query_version = "0.0.1"
+
+libraryDependencies ++= Seq("com.lightbend" %%
+  "kafka-streams-query" % kafka_streams_query_version)
+```
+
+> Note: `kafka-streams-query` supports Kafka Streams `1.0.0`.
+
+
 ## The Library
 
 The library is organized around 3 main packages containing the following:
