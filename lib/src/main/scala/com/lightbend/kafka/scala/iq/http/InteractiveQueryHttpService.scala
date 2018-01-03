@@ -26,6 +26,9 @@ import scala.util.{ Try, Success, Failure }
 import com.typesafe.scalalogging.LazyLogging
 
 
+/**
+ * The interactive http query service. Offers APIs to start and stop the service.
+ */ 
 abstract class InteractiveQueryHttpService(hostInfo: HostInfo,
     actorSystem: ActorSystem,
     actorMaterializer: ActorMaterializer,

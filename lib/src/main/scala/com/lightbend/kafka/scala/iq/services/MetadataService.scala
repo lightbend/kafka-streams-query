@@ -13,6 +13,7 @@ case class HostStoreInfo(host: String, port: Int, storeNames: Set[String])
 
 /**
  * Looks up StreamsMetadata from KafkaStreams 
+ * Adapted from https://github.com/confluentinc/kafka-streams-examples/blob/4.0.0-post/src/main/java/io/confluent/examples/streams/interactivequeries/MetadataService.java
  */
 class MetadataService(val streams: KafkaStreams) extends LazyLogging {
 

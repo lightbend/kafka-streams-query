@@ -1,9 +1,9 @@
 import sbtassembly.MergeStrategy
 import NativePackagerHelper._
 
-name := QueryExampleBuild.NamePrefix + "root"
+name := "QueryExampleProject-root"
 
-version in ThisBuild := "0.0.1"
+version in ThisBuild := "0.1.0"
 
 scalaVersion := Versions.scalaVersion
 

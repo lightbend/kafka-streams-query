@@ -18,6 +18,10 @@ import com.typesafe.scalalogging.LazyLogging
 import services.HostStoreInfo
 import java.io.IOException
 
+/**
+ * Provides a generic API over HTTP to query from a host and a store. The result is
+ * returned as a Future.
+ */ 
 class HttpRequester(val actorSystem: ActorSystem, val mat: ActorMaterializer,
                     val executionContext: ExecutionContext) extends LazyLogging {
 

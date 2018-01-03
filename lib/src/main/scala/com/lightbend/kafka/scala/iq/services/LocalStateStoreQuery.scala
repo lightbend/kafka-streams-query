@@ -10,6 +10,10 @@ import scala.concurrent.duration._
 import com.typesafe.scalalogging.LazyLogging
 import akka.actor.{ActorSystem, Scheduler}
 
+/**
+ * Abstraction that supports query from a local state store. The query supports retry semantics if 
+ * invoked during Kafka Streams' rebalancing act when states may migrate across stores.
+ */ 
 class LocalStateStoreQuery[K, V] extends LazyLogging {
 
   final val MaxRetryCount = 10
