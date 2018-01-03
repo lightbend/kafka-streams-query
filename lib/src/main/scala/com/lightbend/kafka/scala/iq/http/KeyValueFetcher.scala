@@ -16,6 +16,16 @@ import services.{ MetadataService, HostStoreInfo, LocalStateStoreQuery }
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
 import serializers.Serializers
 
+/**
+ * Abstraction for fetching information from a key/value state store based on the
+ * key and the store name passed in the API.
+ *
+ * Supports basic fetch as well as fetch over a time window.
+ *
+ * The fetch APIs support retry semantics in case the key is not available in the local state store. It
+ * then fetches the store information from the MetadataService and then requeries that store
+ * to get the information.
+ */ 
 class KeyValueFetcher(
   metadataService: MetadataService, 
   localStateStoreQuery: LocalStateStoreQuery[String, Long],

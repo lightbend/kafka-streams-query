@@ -30,8 +30,7 @@ local_state_data/
 release/staging/
 
 lib/project/build.properties
-examples/example-proc/project/build.properties
-examples/example-dsl/project/build.properties
+examples/project/build.properties
 examples/kafka-local-server/project/build.properties
 
 examples/example-proc/src/main/resources/application-proc.conf
