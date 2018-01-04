@@ -17,7 +17,7 @@ The goal of this small library is to offer such a query layer based on [akka-htt
 `kafka-streams-query` is published and cross-built for Scala `2.11`, and `2.12`, so you can just add the following to your build:
 
 ```scala
-val kafka_streams_query_version = "0.0.1"
+val kafka_streams_query_version = "0.1.0"
 
 libraryDependencies ++= Seq("com.lightbend" %%
   "kafka-streams-query" % kafka_streams_query_version)
