@@ -25,7 +25,7 @@ libraryDependencies ++= Seq("com.lightbend" %%
 
 > Note: `kafka-streams-query` supports Kafka Streams `1.0.0`.
 
-The API docs for `kafka-streams-query` is available [here](https://developer.lightbend.com/docs/api/kafka-streams-query/2.12) for Scala 2.12 and [here](https://developer.lightbend.com/docs/api/kafka-streams-query/2.11) for Scala 2.11.
+The API docs for `kafka-streams-query` is available [here](https://developer.lightbend.com/docs/api/kafka-streams-query/0.1.0/com/lightbend/kafka/scala/iq) for Scala 2.12 and [here](https://developer.lightbend.com/docs/api/kafka-streams-query_2.11/0.1.0/#package) for Scala 2.11.
 
 ## The Library
 
