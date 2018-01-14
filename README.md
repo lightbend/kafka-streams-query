@@ -1,4 +1,7 @@
 # HTTP Endpoints for Interactive Queries for Kafka Streams
+
+[![Build Status](https://secure.travis-ci.org/lightbend/kafka-streams-query.png)](http://travis-ci.org/lightbend/kafka-streams-query)
+
 Library offering http based query on top of Kafka Streams Interactive Queries. The project has 2 parts:
 
 1. The core library, as described [here](lib/README.md)

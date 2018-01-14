@@ -1,0 +1,17 @@
+language: scala
+sudo: false
+jdk: oraclejdk8
+cache:
+  directories:
+  - "$HOME/.ivy2/cache"
+  - "$HOME/.sbt/launchers"
+before_cache:
+- find $HOME/.sbt -name "*.lock" | xargs rm
+- find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
+matrix:
+  include:
+  - env: PROJECT="lib"
+  - env: PROJECT="examples"
+script:
+- cd "${PROJECT}"
+- sbt +test
