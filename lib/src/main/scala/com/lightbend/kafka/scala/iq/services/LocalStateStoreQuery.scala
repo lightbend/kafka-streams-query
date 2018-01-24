@@ -12,7 +12,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import com.typesafe.scalalogging.LazyLogging
-import akka.actor.{ActorSystem, Scheduler}
+import akka.actor.ActorSystem
 
 /**
  * Abstraction that supports query from a local state store. The query supports retry semantics if 

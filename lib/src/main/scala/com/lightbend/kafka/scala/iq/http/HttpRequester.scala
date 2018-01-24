@@ -7,13 +7,11 @@ package http
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.client.RequestBuilding
 
 import akka.http.scaladsl.model.{ HttpResponse, HttpRequest, ResponseEntity }
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.unmarshalling.{ Unmarshal, Unmarshaller }
 
-import akka.stream.scaladsl.{Flow, Sink, Source}
 import akka.stream.ActorMaterializer
 
 import scala.concurrent.{ Future, ExecutionContext}

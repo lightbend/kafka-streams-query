@@ -8,24 +8,20 @@ package http
 import akka.actor.ActorSystem
 
 import akka.http.scaladsl.server.Directives
-import Directives._
 import akka.http.scaladsl.Http
 
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.http.scaladsl.model.StatusCodes._
-import akka.http.scaladsl.server.{ ExceptionHandler, Route }
+import akka.http.scaladsl.server.ExceptionHandler
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
 
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Flow
 
-import io.circe.generic.auto._
-import io.circe.syntax._
-
 import org.apache.kafka.streams.state.HostInfo
 
 import scala.concurrent.{ Future, ExecutionContext}
-import scala.util.{ Try, Success, Failure }
+import scala.util.{ Success, Failure }
 
 import com.typesafe.scalalogging.LazyLogging
 

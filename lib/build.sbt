@@ -10,7 +10,7 @@ scalaVersion := Versions.scalaVersion
 
 crossScalaVersions := Versions.crossScalaVersions
 
-scalacOptions := Seq("-Xexperimental", "-unchecked", "-deprecation")
+scalacOptions := Seq("-Xexperimental", "-unchecked", "-deprecation", "-Ywarn-unused-import")
 
 parallelExecution in Test := false
 
