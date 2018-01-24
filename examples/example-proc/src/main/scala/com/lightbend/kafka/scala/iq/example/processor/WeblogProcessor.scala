@@ -7,7 +7,7 @@ package processor
 
 import scala.util.{ Success, Failure }
 import org.apache.kafka.streams.processor.{ AbstractProcessor, ProcessorContext, PunctuationType, Punctuator }
-import models.{ LogParseUtil, LogRecord }
+import models.LogParseUtil
 import com.typesafe.scalalogging.LazyLogging
 
 class WeblogProcessor extends AbstractProcessor[String, String] with LazyLogging {

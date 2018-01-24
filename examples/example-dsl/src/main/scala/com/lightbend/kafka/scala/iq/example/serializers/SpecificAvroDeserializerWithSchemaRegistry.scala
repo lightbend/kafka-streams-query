@@ -8,7 +8,6 @@ package serializers
 import org.apache.kafka.common.serialization.Deserializer
 
 import scala.collection.JavaConverters._
-import scala.collection.immutable.HashMap
 
 import java.util.{ Map => JMap }
 

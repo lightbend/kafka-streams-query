@@ -6,7 +6,7 @@ package com.lightbend.kafka.scala.iq.example
 package processor
 
 import org.apache.kafka.streams.processor.ProcessorContext
-import org.apache.kafka.streams.processor.internals.{ProcessorStateManager, RecordCollector, ProcessorContextImpl}
+import org.apache.kafka.streams.processor.internals.{ProcessorStateManager, RecordCollector}
 import org.apache.kafka.streams.state.StateSerdes
 
 class BFStoreChangeLogger[K, V](val storeName: String,

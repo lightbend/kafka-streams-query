@@ -9,7 +9,6 @@ import akka.actor.ActorSystem
 
 import akka.stream.ActorMaterializer
 
-import io.circe.generic.auto._
 import io.circe.syntax._
 
 import org.apache.kafka.streams.state.HostInfo

@@ -5,19 +5,15 @@
 package com.lightbend.kafka.scala.iq.example
 
 import java.util.Properties
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.Executors
 
-import scala.collection.JavaConverters._
-import scala.util.{ Success, Failure }
 import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 
 import org.apache.kafka.streams.Topology
-import org.apache.kafka.streams.processor.StateStoreSupplier
-import org.apache.kafka.streams.state.{ Stores, HostInfo }
+import org.apache.kafka.streams.state.HostInfo
 import org.apache.kafka.streams.{ StreamsConfig, KafkaStreams }
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.clients.consumer.ConsumerConfig;

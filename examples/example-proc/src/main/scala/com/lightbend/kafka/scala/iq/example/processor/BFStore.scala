@@ -9,7 +9,6 @@ import com.twitter.algebird.{BloomFilterMonoid, BF, Hash128, Approximate}
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.processor.{ProcessorContext, StateStore}
 import org.apache.kafka.streams.state.StateSerdes
-import org.apache.kafka.streams.processor.internals.{ProcessorStateManager, RecordCollector}
 
 /**
  * Bloom Filter as a StateStore. The only query it supports is membership.

@@ -11,7 +11,7 @@ object Versions {
   val crossScalaVersions = Seq(scalaVersion, "2.11.11")
   val circeVersion = "0.8.0"
   val akkaVersion = "2.5.3"
-  val akkaHttpVersion = "10.0.10"
+  val akkaHttpVersion = "10.0.11"
   val akkaHttpCirceVersion = "1.17.0"
   val bijectionVersion = "0.9.5"
 }

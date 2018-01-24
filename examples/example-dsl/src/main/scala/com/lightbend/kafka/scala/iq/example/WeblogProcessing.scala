@@ -4,8 +4,7 @@
 
 package com.lightbend.kafka.scala.iq.example
 
-import java.io.{PrintWriter, StringWriter}
-import java.lang.{Long => JLong}
+import java.io.StringWriter
 import java.time.format.DateTimeFormatter
 import java.util.Properties
 import java.util.concurrent.Executors
@@ -22,20 +21,23 @@ import config.KStreamConfig._
 import http.{ WeblogDSLHttpService, SummaryInfoFetcher }
 import models.{LogParseUtil, LogRecord}
 
+import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
+
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.Serdes
-import org.apache.kafka.common.utils.Bytes
 import org.apache.kafka.streams.kstream._
-import org.apache.kafka.streams.{ StreamsBuilder, Consumed }
-import org.apache.kafka.streams.state.{ HostInfo, KeyValueStore, WindowStore }
-import org.apache.kafka.streams.{KafkaStreams, KeyValue, StreamsConfig}
+import org.apache.kafka.streams.Consumed
+import org.apache.kafka.streams.state.HostInfo
+import org.apache.kafka.streams.{KafkaStreams, StreamsConfig}
 
 import com.lightbend.kafka.scala.streams._
 
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
-object WeblogProcessing extends WeblogWorkflow {
+import serializers.AppSerializers
+
+object WeblogProcessing extends WeblogWorkflow with AppSerializers with FailFastCirceSupport {
 
   final val ACCESS_COUNT_PER_HOST_STORE = "access-count-per-host"
   final val PAYLOAD_SIZE_PER_HOST_STORE = "payload-size-per-host"
@@ -68,9 +70,12 @@ object WeblogProcessing extends WeblogWorkflow {
     // http service for request handling
     val httpRequester = new HttpRequester(system, materializer, executionContext)
 
+    implicit val ss = stringSerializer
     val restService = new WeblogDSLHttpService(
       hostInfo,
-      new SummaryInfoFetcher(new KeyValueFetcher(metadataService, localStateStoreQuery, httpRequester, streams, executionContext, hostInfo)),
+      new SummaryInfoFetcher(
+        new KeyValueFetcher(metadataService, localStateStoreQuery, httpRequester, streams, executionContext, hostInfo)
+      ),
       system, materializer, executionContext
     )
     restService.start()

@@ -15,7 +15,7 @@ import io.circe.syntax._
 import org.apache.kafka.streams.state.HostInfo
 
 import scala.concurrent.ExecutionContext
-import com.lightbend.kafka.scala.iq.http.{ InteractiveQueryHttpService, KeyValueFetcher }
+import com.lightbend.kafka.scala.iq.http.InteractiveQueryHttpService
 
 
 class WeblogDSLHttpService(
