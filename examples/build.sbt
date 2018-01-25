@@ -3,7 +3,7 @@ import NativePackagerHelper._
 
 name := "QueryExampleProject-root"
 
-version in ThisBuild := "0.2.0-SNAPSHOT"
+version in ThisBuild := "0.1.1"
 
 scalaVersion := Versions.scalaVersion
 
@@ -17,6 +17,7 @@ lazy val dslRun = (project in file("./example-dsl"))
   .settings (
     fork in run := true,
     mainClass in Compile := Some("com.lightbend.kafka.scala.iq.example.WeblogProcessing"),
+    scalacOptions := Seq("-Xexperimental", "-unchecked", "-deprecation", "-Ywarn-unused-import"),
     javaOptions in run ++= Seq(
       "-Dconfig.file=" + (resourceDirectory in Compile).value / "application-dsl.conf",
       "-Dlogback.configurationFile=" + (resourceDirectory in Compile).value / "logback-dsl.xml",
@@ -59,6 +60,7 @@ lazy val procRun = (project in file("./example-proc"))
   .settings (
     fork in run := true,
     mainClass in Compile := Some("com.lightbend.kafka.scala.iq.example.WeblogDriver"),
+    scalacOptions := Seq("-Xexperimental", "-unchecked", "-deprecation", "-Ywarn-unused-import"),
     javaOptions in run ++= Seq(
       "-Dconfig.file=" + (resourceDirectory in Compile).value / "application-proc.conf",
       "-Dlogback.configurationFile=" + (resourceDirectory in Compile).value / "logback-proc.xml",

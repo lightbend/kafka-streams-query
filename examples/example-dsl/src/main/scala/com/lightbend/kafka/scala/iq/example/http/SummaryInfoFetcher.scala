@@ -8,7 +8,7 @@ package http
 import com.lightbend.kafka.scala.iq.http.KeyValueFetcher
 import scala.concurrent.Future
 
-class SummaryInfoFetcher(kvf: KeyValueFetcher) {
+class SummaryInfoFetcher(kvf: KeyValueFetcher[String, Long]) {
   def fetchAccessCountSummary(hostKey: String): Future[Long] =
     kvf.fetch(hostKey, WeblogProcessing.ACCESS_COUNT_PER_HOST_STORE, "/weblog/access/" + hostKey)
 

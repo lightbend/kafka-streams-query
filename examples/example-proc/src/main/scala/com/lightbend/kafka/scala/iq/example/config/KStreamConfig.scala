@@ -5,7 +5,6 @@
 package com.lightbend.kafka.scala.iq.example
 package config
 
-import cats._
 import cats.data._
 import cats.instances.all._
 

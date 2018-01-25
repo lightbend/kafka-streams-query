@@ -7,7 +7,6 @@ package serializers
 
 import org.apache.kafka.common.serialization.{ Deserializer, Serde, Serdes, Serializer }
 
-import java.util.Collections
 import java.util.Map
 
 class SpecificAvroSerdeWithSchemaRegistry[T <: org.apache.avro.specific.SpecificRecord] extends Serde[T] {

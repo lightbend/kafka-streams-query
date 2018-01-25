@@ -5,12 +5,10 @@
 package com.lightbend.kafka.scala.iq.example
 package http
 
-import akka.stream.ActorMaterializer
 import akka.actor.ActorSystem
 
 import org.apache.kafka.streams.{ KafkaStreams }
 import org.apache.kafka.streams.state.HostInfo
-import org.apache.kafka.common.serialization.StringSerializer
 
 import scala.concurrent.{ Future, ExecutionContext}
 import scala.util.{ Success, Failure }

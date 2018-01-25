@@ -9,7 +9,7 @@ import org.apache.kafka.streams.state.QueryableStoreType
 import org.apache.kafka.streams.processor.StateStore
 import org.apache.kafka.streams.state.internals.StateStoreProvider
 
-import com.twitter.algebird.{ Hash128, ApproximateBoolean }
+import com.twitter.algebird.Hash128
 
 import scala.collection.JavaConverters._
 
