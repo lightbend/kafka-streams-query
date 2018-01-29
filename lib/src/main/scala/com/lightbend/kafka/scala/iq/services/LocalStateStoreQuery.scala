@@ -66,7 +66,7 @@ class LocalStateStoreQuery[K, V] extends LazyLogging {
   /**
    * Query for a range of keys
    */ 
-  def queryStateStore(streams: KafkaStreams, store: String, fromKey: K, toKey: K)
+  def queryStateStoreForRange(streams: KafkaStreams, store: String, fromKey: K, toKey: K)
     (implicit ex: ExecutionContext, as: ActorSystem): Future[List[(K, V)]] = {
 
     def fetchNClose(rs: ReadOnlyKeyValueStore[K, V]) = {

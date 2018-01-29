@@ -15,6 +15,12 @@ class SummaryInfoFetcher(kvf: KeyValueFetcher[String, Long]) {
   def fetchPayloadSizeSummary(hostKey: String): Future[Long] =
     kvf.fetch(hostKey, WeblogProcessing.PAYLOAD_SIZE_PER_HOST_STORE, "/weblog/bytes/" + hostKey)
 
+  def fetchAllAccessCountSummary: Future[List[(String, Long)]] =
+    kvf.fetchAll(WeblogProcessing.ACCESS_COUNT_PER_HOST_STORE, "/weblog/access/ALL")
+
+  def fetchAllPayloadSizeSummary: Future[List[(String, Long)]] =
+    kvf.fetchAll(WeblogProcessing.PAYLOAD_SIZE_PER_HOST_STORE, "/weblog/bytes/ALL")
+
   def fetchWindowedAccessCountSummary(hostKey: String, fromTime: Long, toTime: Long): Future[List[(Long, Long)]] = 
     kvf.fetchWindowed(hostKey, WeblogProcessing.WINDOWED_ACCESS_COUNT_PER_HOST_STORE, "/weblog/access/win/", fromTime, toTime) 
 

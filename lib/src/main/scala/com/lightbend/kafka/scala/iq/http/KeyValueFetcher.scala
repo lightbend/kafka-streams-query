@@ -12,7 +12,7 @@ import org.apache.kafka.streams.state.HostInfo
 import org.apache.kafka.common.serialization.Serializer
 
 import scala.concurrent.{ Future, ExecutionContext}
-import scala.util.{ Success, Failure }
+import scala.util.{ Try, Success, Failure }
 
 import com.typesafe.scalalogging.LazyLogging
 import services.{ MetadataService, HostStoreInfo, LocalStateStoreQuery }
@@ -66,7 +66,7 @@ class KeyValueFetcher[K: Decoder, V: Decoder](
   }
 
   /**
-   * Query all
+   * Query all: Warning - this may be large depending on the data set
    */ 
   def fetchAll(store: String, path: String): Future[List[(K, V)]] = { 
 
@@ -89,6 +89,36 @@ class KeyValueFetcher[K: Decoder, V: Decoder](
 
       // all hosts that have this store with the same application id
       case hosts => Future.traverse(hosts)(fetchKVs).map(_.flatten)
+    }
+  }
+
+  /**
+   * Query for a range of keys: prerequisite is that both keys of the
+   * range needs to be co-located
+   */ 
+  def fetchRange(fromKey: K, toKey: K, store: String, path: String): Future[List[(K, V)]] = { 
+
+    def fetchKVs(host: HostStoreInfo): Future[List[(K, V)]] = {
+      if (!thisHost(host)) {
+          
+        // host is remote - need to requery
+        httpRequester.queryFromHost[List[(K, V)]](host, path)
+      } else {
+
+        // fetch all kvs in range for this local store
+        localStateStoreQuery.queryStateStoreForRange(streams, store, fromKey, toKey)
+      }
+    }
+
+    val colocationCheck: Try[HostStoreInfo] = for {
+      hsFrom <- metadataService.streamsMetadataForStoreAndKey(store, fromKey, keySerializer) 
+      hsTo   <- metadataService.streamsMetadataForStoreAndKey(store, toKey, keySerializer) 
+      if (hsFrom.host == hsTo.host && hsFrom.port == hsTo.port)
+    } yield (hsFrom)
+
+    colocationCheck match {
+      case Success(hs) => fetchKVs(hs)
+      case Failure(ex) => Future.failed(new Exception(s"Both keys of the range ($fromKey, $toKey) has to be on the same host", ex))
     }
   }
 

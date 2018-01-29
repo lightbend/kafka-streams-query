@@ -42,12 +42,18 @@ class WeblogDSLHttpService(
       } ~
       (get & pathPrefix("access") & path(Segment)) { hostKey =>
         complete {
-          summaryInfoFetcher.fetchAccessCountSummary(hostKey).map(_.asJson)
+          if (hostKey == "ALL")
+            summaryInfoFetcher.fetchAllAccessCountSummary.map(_.asJson)
+          else
+            summaryInfoFetcher.fetchAccessCountSummary(hostKey).map(_.asJson)
         }
       } ~
       (get & pathPrefix("bytes") & path(Segment)) { hostKey =>
         complete {
-          summaryInfoFetcher.fetchPayloadSizeSummary(hostKey).map(_.asJson)
+          if (hostKey == "ALL")
+            summaryInfoFetcher.fetchAllPayloadSizeSummary.map(_.asJson)
+          else 
+            summaryInfoFetcher.fetchPayloadSizeSummary(hostKey).map(_.asJson)
         }
       }
     }
