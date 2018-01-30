@@ -12,7 +12,7 @@ import org.apache.kafka.streams.state.HostInfo
 import org.apache.kafka.common.serialization.Serializer
 
 import scala.concurrent.{ Future, ExecutionContext}
-import scala.util.{ Try, Success, Failure }
+import scala.util.{ Success, Failure }
 
 import com.typesafe.scalalogging.LazyLogging
 import services.{ MetadataService, HostStoreInfo, LocalStateStoreQuery }
@@ -70,7 +70,7 @@ class KeyValueFetcher[K: Decoder, V: Decoder](
    */ 
   def fetchAll(store: String, path: String): Future[List[(K, V)]] = { 
 
-    def fetchKVs(host: HostStoreInfo): Future[List[(K, V)]] = {
+    def fetchAllKVs(host: HostStoreInfo): Future[List[(K, V)]] = {
       if (!thisHost(host)) {
           
         // host is remote - need to requery
@@ -82,23 +82,15 @@ class KeyValueFetcher[K: Decoder, V: Decoder](
       }
     }
 
-    metadataService.streamsMetadataForStore(store) match {
-
-      // metadata could not be found for this store
-      case Nil => Future.failed(new Exception(s"No metadata found for $store"))
-
-      // all hosts that have this store with the same application id
-      case hosts => Future.traverse(hosts)(fetchKVs).map(_.flatten)
-    }
+    fetchKVs(store, fetchAllKVs)
   }
 
   /**
-   * Query for a range of keys: prerequisite is that both keys of the
-   * range needs to be co-located
+   * Query for a range of keys
    */ 
   def fetchRange(fromKey: K, toKey: K, store: String, path: String): Future[List[(K, V)]] = { 
 
-    def fetchKVs(host: HostStoreInfo): Future[List[(K, V)]] = {
+    def fetchKVsInRange(host: HostStoreInfo): Future[List[(K, V)]] = {
       if (!thisHost(host)) {
           
         // host is remote - need to requery
@@ -110,20 +102,18 @@ class KeyValueFetcher[K: Decoder, V: Decoder](
       }
     }
 
-    def isCollocated(hsFrom: HostStoreInfo, hsTo: HostStoreInfo): Boolean =
-      (hsFrom.host == hsTo.host && hsFrom.port == hsTo.port)
-
-    val hsFromTo: Try[(HostStoreInfo, HostStoreInfo)] = for {
-      hsFrom <- metadataService.streamsMetadataForStoreAndKey(store, fromKey, keySerializer) 
-      hsTo   <- metadataService.streamsMetadataForStoreAndKey(store, toKey, keySerializer) 
-    } yield (hsFrom, hsTo)
-
-    hsFromTo match {
-      case Success((hsf, hst)) if isCollocated(hsf, hst) => fetchKVs(hsf)
-      case Success((hsf, hst)) => Future.failed(new Exception(s"Both keys of the range ($fromKey, $toKey) has to be on the same host"))
-      case Failure(ex) => Future.failed(ex)
-    }
+    fetchKVs(store, fetchKVsInRange)
   }
+
+  private def fetchKVs(store: String, fn: HostStoreInfo => Future[List[(K, V)]]): Future[List[(K, V)]] = 
+    metadataService.streamsMetadataForStore(store) match {
+
+      // metadata could not be found for this store
+      case Nil => Future.failed(new Exception(s"No metadata found for $store"))
+
+      // all hosts that have this store with the same application id
+      case hosts => Future.traverse(hosts)(fn).map(_.flatten)
+    }
 
   /**
    * Query all hosts to find the sum of approximate number of entries
