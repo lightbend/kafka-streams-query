@@ -110,15 +110,45 @@ class KeyValueFetcher[K: Decoder, V: Decoder](
       }
     }
 
-    val colocationCheck: Try[HostStoreInfo] = for {
+    def isCollocated(hsFrom: HostStoreInfo, hsTo: HostStoreInfo): Boolean =
+      (hsFrom.host == hsTo.host && hsFrom.port == hsTo.port)
+
+    val hsFromTo: Try[(HostStoreInfo, HostStoreInfo)] = for {
       hsFrom <- metadataService.streamsMetadataForStoreAndKey(store, fromKey, keySerializer) 
       hsTo   <- metadataService.streamsMetadataForStoreAndKey(store, toKey, keySerializer) 
-      if (hsFrom.host == hsTo.host && hsFrom.port == hsTo.port)
-    } yield (hsFrom)
+    } yield (hsFrom, hsTo)
 
-    colocationCheck match {
-      case Success(hs) => fetchKVs(hs)
-      case Failure(ex) => Future.failed(new Exception(s"Both keys of the range ($fromKey, $toKey) has to be on the same host", ex))
+    hsFromTo match {
+      case Success((hsf, hst)) if isCollocated(hsf, hst) => fetchKVs(hsf)
+      case Success((hsf, hst)) => Future.failed(new Exception(s"Both keys of the range ($fromKey, $toKey) has to be on the same host"))
+      case Failure(ex) => Future.failed(ex)
+    }
+  }
+
+  /**
+   * Query all hosts to find the sum of approximate number of entries
+   */ 
+  def fetchApproxNumEntries(store: String, path: String): Future[Long] = { 
+
+    def fetchApproxNumEntries(host: HostStoreInfo): Future[Long] = {
+      if (!thisHost(host)) {
+          
+        // host is remote - need to requery
+        httpRequester.queryFromHost[Long](host, path)
+      } else {
+
+        // fetch approx num entries for this local store
+        localStateStoreQuery.queryStateStoreForApproxNumEntries(streams, store)
+      }
+    }
+
+    metadataService.streamsMetadataForStore(store) match {
+
+      // metadata could not be found for this store
+      case Nil => Future.failed(new Exception(s"No metadata found for $store"))
+
+      // all hosts that have this store with the same application id
+      case hosts => Future.traverse(hosts)(fetchApproxNumEntries).map(_.sum)
     }
   }
 

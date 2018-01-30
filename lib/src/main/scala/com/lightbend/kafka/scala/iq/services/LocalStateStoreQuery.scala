@@ -81,6 +81,16 @@ class LocalStateStoreQuery[K, V] extends LazyLogging {
   }
 
   /**
+   * Query approximate num entries
+   */ 
+  def queryStateStoreForApproxNumEntries(streams: KafkaStreams, store: String)
+    (implicit ex: ExecutionContext, as: ActorSystem): Future[Long] = {
+
+    val q: QueryableStoreType[ReadOnlyKeyValueStore[K, V]] = QueryableStoreTypes.keyValueStore()
+    _retry(streams.store(store, q)).map(_.approximateNumEntries)
+  }
+
+  /**
    * Query for a window
    */
   def queryWindowedStateStore(streams: KafkaStreams, store: String, key: K, fromTime: Long, toTime: Long)

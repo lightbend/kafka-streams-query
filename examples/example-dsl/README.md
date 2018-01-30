@@ -79,6 +79,12 @@ $ ## with the same application id
 $ curl http://localhost:7070/weblog/access/ALL
 [["204.249.225.59",1],["access9.accsyst.com",2],["cssu24.cs.ust.hk",1],["cyclom1-1-6.intersource.com",1],["d24-1.cpe.Brisbane.aone.net.au",1],["er6.rutgers.edu",1],["world.std.com",3]]
 $
+$ ## If you specify COUNT as the key-name then it will fetch the sum of count of all 
+$ ## approximate number of entries from all the stores that has the access information
+$ ## with the same application id
+$ curl http://localhost:7070/weblog/access/COUNT
+7
+$
 $ ## Fetch the number of bytes in the reply for queries to the host 
 $ ## world.std.com as per the downloaded data file
 $ curl http://localhost:7070/weblog/bytes/world.std.com
