@@ -40,6 +40,26 @@ class WeblogDSLHttpService(
           summaryInfoFetcher.fetchWindowedPayloadSizeSummary(hostKey, 0, System.currentTimeMillis).map(_.asJson)
         }
       } ~
+      (get & pathPrefix("access" / "win" / Segment / LongNumber / LongNumber)) { (hostKey, fromTime, toTime) =>
+        complete {
+          summaryInfoFetcher.fetchWindowedAccessCountSummary(hostKey, fromTime, toTime).map(_.asJson)
+        }
+      } ~
+      (get & pathPrefix("bytes" / "win" / Segment / LongNumber / LongNumber)) { (hostKey, fromTime, toTime) =>
+        complete {
+          summaryInfoFetcher.fetchWindowedPayloadSizeSummary(hostKey, fromTime, toTime).map(_.asJson)
+        }
+      } ~
+      (get & pathPrefix("access" / "range" / Segment / Segment)) { (fromKey, toKey) =>
+        complete {
+          summaryInfoFetcher.fetchRangeAccessCountSummary(fromKey, toKey).map(_.asJson)
+        }
+      } ~
+      (get & pathPrefix("bytes" / "range" / Segment / Segment)) { (fromKey, toKey) =>
+        complete {
+          summaryInfoFetcher.fetchRangePayloadSizeSummary(fromKey, toKey).map(_.asJson)
+        }
+      } ~
       (get & pathPrefix("access") & path(Segment)) { hostKey =>
         complete {
           if (hostKey == "ALL") summaryInfoFetcher.fetchAllAccessCountSummary.map(_.asJson)
