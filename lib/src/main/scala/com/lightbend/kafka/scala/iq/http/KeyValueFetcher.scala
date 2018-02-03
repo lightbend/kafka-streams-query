@@ -32,7 +32,7 @@ import io.circe.Decoder
  * then fetches the store information from the MetadataService and then requeries that store
  * to get the information.
  */ 
-class KeyValueFetcher[K, V: Decoder](
+class KeyValueFetcher[K: Decoder, V: Decoder](
   metadataService: MetadataService, 
   localStateStoreQuery: LocalStateStoreQuery[K, V],
   httpRequester: HttpRequester, 
@@ -45,6 +45,9 @@ class KeyValueFetcher[K, V: Decoder](
 
   private implicit val ec: ExecutionContext = executionContext
 
+  /**
+   * Query for a key
+   */ 
   def fetch(key: K, store: String, path: String): Future[V] = { 
 
     metadataService.streamsMetadataForStoreAndKey(store, key, keySerializer) match {
@@ -62,6 +65,86 @@ class KeyValueFetcher[K, V: Decoder](
     }
   }
 
+  /**
+   * Query all: Warning - this may be large depending on the data set
+   */ 
+  def fetchAll(store: String, path: String): Future[List[(K, V)]] = { 
+
+    def fetchAllKVs(host: HostStoreInfo): Future[List[(K, V)]] = {
+      if (!thisHost(host)) {
+          
+        // host is remote - need to requery
+        httpRequester.queryFromHost[List[(K, V)]](host, path)
+      } else {
+
+        // fetch all kvs for this local store
+        localStateStoreQuery.queryStateStoreForAll(streams, store)
+      }
+    }
+
+    fetchKVs(store, fetchAllKVs)
+  }
+
+  /**
+   * Query for a range of keys
+   */ 
+  def fetchRange(fromKey: K, toKey: K, store: String, path: String): Future[List[(K, V)]] = { 
+
+    def fetchKVsInRange(host: HostStoreInfo): Future[List[(K, V)]] = {
+      if (!thisHost(host)) {
+          
+        // host is remote - need to requery
+        httpRequester.queryFromHost[List[(K, V)]](host, path)
+      } else {
+
+        // fetch all kvs in range for this local store
+        localStateStoreQuery.queryStateStoreForRange(streams, store, fromKey, toKey)
+      }
+    }
+
+    fetchKVs(store, fetchKVsInRange)
+  }
+
+  private def fetchKVs(store: String, fn: HostStoreInfo => Future[List[(K, V)]]): Future[List[(K, V)]] = 
+    metadataService.streamsMetadataForStore(store) match {
+
+      // metadata could not be found for this store
+      case Nil => Future.failed(new Exception(s"No metadata found for $store"))
+
+      // all hosts that have this store with the same application id
+      case hosts => Future.traverse(hosts)(fn).map(_.flatten)
+    }
+
+  /**
+   * Query all hosts to find the sum of approximate number of entries
+   */ 
+  def fetchApproxNumEntries(store: String, path: String): Future[Long] = { 
+
+    def fetchApproxNumEntries(host: HostStoreInfo): Future[Long] = {
+      if (!thisHost(host)) {
+          
+        // host is remote - need to requery
+        httpRequester.queryFromHost[Long](host, path)
+      } else {
+
+        // fetch approx num entries for this local store
+        localStateStoreQuery.queryStateStoreForApproxNumEntries(streams, store)
+      }
+    }
+
+    metadataService.streamsMetadataForStore(store) match {
+
+      // metadata could not be found for this store
+      case Nil => Future.failed(new Exception(s"No metadata found for $store"))
+
+      // all hosts that have this store with the same application id
+      case hosts => Future.traverse(hosts)(fetchApproxNumEntries).map(_.sum)
+    }
+  }
+
+  /**
+   * Query for a window
+   */
   def fetchWindowed(key: K, store: String, path: String, 
     fromTime: Long, toTime: Long): Future[List[(Long, V)]] = 
 

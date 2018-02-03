@@ -36,14 +36,65 @@ class LocalStateStoreQuery[K, V] extends LazyLogging {
     retry(op, DelayBetweenRetries, MaxRetryCount)(ec, as.scheduler)
   }
 
-  def queryStateStore(streams: KafkaStreams, store: String, key: K)(implicit ex: ExecutionContext, as: ActorSystem): Future[V] = {
+  /**
+   * Query for a key
+   */ 
+  def queryStateStore(streams: KafkaStreams, store: String, key: K)
+    (implicit ex: ExecutionContext, as: ActorSystem): Future[V] = {
 
     val q: QueryableStoreType[ReadOnlyKeyValueStore[K, V]] = QueryableStoreTypes.keyValueStore()
     _retry(streams.store(store, q)).map(_.get(key))
   }
 
+  /**
+   * Query all
+   */ 
+  def queryStateStoreForAll(streams: KafkaStreams, store: String)
+    (implicit ex: ExecutionContext, as: ActorSystem): Future[List[(K, V)]] = {
+
+    def fetchNClose(rs: ReadOnlyKeyValueStore[K, V]) = {
+      val kvi = rs.all
+      val kvs = kvi.asScala.toList.map(kv => (kv.key, kv.value))
+      kvi.close()
+      kvs
+    }
+
+    val q: QueryableStoreType[ReadOnlyKeyValueStore[K, V]] = QueryableStoreTypes.keyValueStore()
+    _retry(streams.store(store, q)).map(fetchNClose)
+  }
+
+  /**
+   * Query for a range of keys
+   */ 
+  def queryStateStoreForRange(streams: KafkaStreams, store: String, fromKey: K, toKey: K)
+    (implicit ex: ExecutionContext, as: ActorSystem): Future[List[(K, V)]] = {
+
+    def fetchNClose(rs: ReadOnlyKeyValueStore[K, V]) = {
+      val kvi = rs.range(fromKey, toKey)
+      val kvs = kvi.asScala.toList.map(kv => (kv.key, kv.value))
+      kvi.close()
+      kvs
+    }
+
+    val q: QueryableStoreType[ReadOnlyKeyValueStore[K, V]] = QueryableStoreTypes.keyValueStore()
+    _retry(streams.store(store, q)).map(fetchNClose)
+  }
+
+  /**
+   * Query approximate num entries
+   */ 
+  def queryStateStoreForApproxNumEntries(streams: KafkaStreams, store: String)
+    (implicit ex: ExecutionContext, as: ActorSystem): Future[Long] = {
+
+    val q: QueryableStoreType[ReadOnlyKeyValueStore[K, V]] = QueryableStoreTypes.keyValueStore()
+    _retry(streams.store(store, q)).map(_.approximateNumEntries)
+  }
+
+  /**
+   * Query for a window
+   */
   def queryWindowedStateStore(streams: KafkaStreams, store: String, key: K, fromTime: Long, toTime: Long)
-                             (implicit ex: ExecutionContext, as: ActorSystem): Future[List[(Long, V)]] = {
+    (implicit ex: ExecutionContext, as: ActorSystem): Future[List[(Long, V)]] = {
 
     val q: QueryableStoreType[ReadOnlyWindowStore[K, V]] = QueryableStoreTypes.windowStore()
 
@@ -53,6 +104,4 @@ class LocalStateStoreQuery[K, V] extends LazyLogging {
        .toList
        .map(kv => (Long2long(kv.key), kv.value)))
   }
-
-
 }

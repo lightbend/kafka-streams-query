@@ -19,6 +19,8 @@ To run the application, do the following steps.
 
 This example application depends on [kafka-streams-scala](https://github.com/lightbend/kafka-streams-scala) and [kafka-streams-query](https://github.com/lightbend/kafka-streams-query/tree/develop/lib). Ensure that you have the proper versions of these libraries in your classpath. Note that in this example Scala 2.12.4 and Kafka 1.0.0 are used.
 
+If you've made local changes `kafka-streams-query` then you'll need to publish them to your local ivy repository using `sbt publishLocal` from within the `./lib/` directory.
+
 ### Start ZooKeeper and Kafka
 
 > This is only required if the setting of `kafka.localserver` is `false` in `application.conf`. If this is set to `true`, the application runs with an embedded local Kafka server. However, note that if you want to run the application in a distributed mode(see below for details of running in distributed mode), you need to run a separate Kafka and Zookeeper server.
@@ -39,19 +41,23 @@ And note that you can run the application with a bundled local Kafka server by s
 
 ### Create the Kafka Topics
 
-> This is only required if the setting of `kafka.localserver` is `false` in `application.conf`. If this is set to `true`, the application runs with an embedded local Kafka server and creates all necessary topics on its own. However, note that if you want to run the application in a distributed mode(see below for details of running in distributed mode), you need to run a separate Kafka and Zookeeper server.
+> This is only required if the setting of `kafka.localserver` is `false` in `application.conf`. If this is set to 
+`true`, the application runs with an embedded local Kafka server and creates all necessary topics on its own. However, 
+note that if you want to run the application in a distributed mode (see below for details of running in distributed 
+mode), you need to run a separate Kafka and Zookeeper server.  If you're running in distributed mode then topics should 
+have more than 1 partition.
 
-Create the topics using the `kafka-topics.sh` command that comes with the Kafka distribution. We'll refer to the directory where you installed Kafka as `$KAFKA_HOME`. Run the following commands:
+Create the topics using the `kafka-topics.sh` command that comes with the Kafka distribution.  We'll refer to the directory where you installed Kafka as `$KAFKA_HOME`. Run the following commands:
 
 ```bash
-$KAFKA_HOME/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic logerr-dsl
-$KAFKA_HOME/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic server-log-dsl
-$KAFKA_HOME/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic processed-log
-$KAFKA_HOME/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic summary-access-log
-$KAFKA_HOME/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic windowed-summary-access-log
-$KAFKA_HOME/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic summary-payload-log
-$KAFKA_HOME/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic windowed-summary-payload-log
-$KAFKA_HOME/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic avro-topic
+$KAFKA_HOME/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 3 --topic logerr-dsl
+$KAFKA_HOME/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 3 --topic server-log-dsl
+$KAFKA_HOME/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 3 --topic processed-log
+$KAFKA_HOME/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 3 --topic summary-access-log
+$KAFKA_HOME/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 3 --topic windowed-summary-access-log
+$KAFKA_HOME/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 3 --topic summary-payload-log
+$KAFKA_HOME/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 3 --topic windowed-summary-payload-log
+$KAFKA_HOME/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 3 --topic avro-topic
 ```
 
 ### Run the Application!
@@ -68,11 +74,37 @@ $ sbt
 This will start the application. Now you can query on the global state using `curl`:
 
 ```bash
-$ ## Fetch the number of accesses made to the host world.std.com as per the
-$ ## downloaded data file
+$ ## The example application has a timer to `touch` the files in the watched
+$ ## directory 1 minute after the app starts to trigger the streaming to begin.  Touch 
+$ ## the ClarkNet dataset again, or add new files, to stream more entries.
+$
+$ ## Fetch the number of accesses made to the host world.std.com as per the downloaded 
+$ ## data file
 $ curl http://localhost:7070/weblog/access/world.std.com
 15
 $
+$ ## If you specify ALL as the key-name then it will fetch a list of all key-values 
+$ ## from all the stores that has the access information with the same application id
+$ curl http://localhost:7070/weblog/access/ALL
+[["204.249.225.59",1],["access9.accsyst.com",2],["cssu24.cs.ust.hk",1],["cyclom1-1-6.intersource.com",1],["d24-1.cpe.Brisbane.aone.net.au",1],["er6.rutgers.edu",1],["world.std.com",3]]
+$
+$ ## If you specify COUNT as the key-name then it will fetch the sum of count of all 
+$ ## approximate number of entries from all the stores that has the access information
+$ ## with the same application id
+$ curl http://localhost:7070/weblog/access/COUNT
+7
+$ ## Query access counts by a range of keys.  The "from" key must be less than the "to"
+$ ## key.  For example, "a.com" < "z.org"
+$ curl http://localhost:7070/weblog/access/range/a.com/z.org
+[["access9.accsyst.com",4],["cssu24.cs.ust.hk",2],["cyclom1-1-6.intersource.com",2],["d24-1.cpe.Brisbane.aone.net.au",2],["er6.rutgers.edu",2],["reddit.com",2],["world.std.com",6]]
+$
+$ ## Query a time window for a key.  The "from" and "to" parameters must be represented
+$ ## as a milliseconds since epoch long number.  The "from" time must be less than the 
+$ ## "to time. Stream elements are windowed using ingest time and not event time.  For 
+$ ## example, get all time windows for world.std.com from epoch 0 to current epoch.
+$ curl http://localhost:7070/weblog/access/win/world.std.com/0/$(date +%s%3N)
+[[1517518200000,6],[1517518260000,3]]
+$ ##
 $ ## Fetch the number of bytes in the reply for queries to the host 
 $ ## world.std.com as per the downloaded data file
 $ curl http://localhost:7070/weblog/bytes/world.std.com
@@ -120,7 +152,7 @@ $ pwd
 Ensure the following:
 
 1. Zookeeper and Kafka are running
-2. All topics mentioned above are created
+2. All topics mentioned above are created with more than 1 partition
 3. The folder mentioned in `directoryToWatch` in `application.conf` has the data file
 
 ```bash
@@ -188,4 +220,40 @@ $ curl localhost:7071/weblog/access/world.std.com
 ## Query using the end points corresponding to the first instance also gives correct result
 $ curl localhost:7070/weblog/access/ppp19.glas.apc.org
 17
+```
+
+### Step 5: Clean up application's Kafka Streams internal topics
+
+When running in distributed mode, Kafka Streams event stores are backed by internal Kafka Streams topics so that state 
+can be restored on different instances of the app if there's a failure.  To reset to a clean state you can use the
+[Kafka Streams Application Reset tool](https://cwiki.apache.org/confluence/display/KAFKA/Kafka+Streams+Application+Reset+Tool)
+This will delete internal Kafka Streams topics associated with a specified application id.  Note that you must have 
+`delete.topics.enable` set to true in your Broker configuration to delete topics.
+
+An example of run this tool:
+
+```
+$ ./kafka-streams-application-reset.sh \
+--application-id kstream-weblog-processing \
+--bootstrap-servers kafka-0-broker:9092 \
+--zookeeper localhost:2181
+No input or intermediate topics specified. Skipping seek.
+Deleting all internal/auto-created topics for application kstream-weblog-processing
+Topic kstream-weblog-processing-windowed-access-count-per-host-changelog is marked for deletion.
+Note: This will have no impact if delete.topic.enable is not set to true.
+Topic kstream-weblog-processing-windowed-payload-size-per-host-repartition is marked for deletion.
+Note: This will have no impact if delete.topic.enable is not set to true.
+Topic kstream-weblog-processing-access-count-per-host-changelog is marked for deletion.
+Note: This will have no impact if delete.topic.enable is not set to true.
+Topic kstream-weblog-processing-payload-size-per-host-repartition is marked for deletion.
+Note: This will have no impact if delete.topic.enable is not set to true.
+Topic kstream-weblog-processing-windowed-payload-size-per-host-changelog is marked for deletion.
+Note: This will have no impact if delete.topic.enable is not set to true.
+Topic kstream-weblog-processing-windowed-access-count-per-host-repartition is marked for deletion.
+Note: This will have no impact if delete.topic.enable is not set to true.
+Topic kstream-weblog-processing-payload-size-per-host-changelog is marked for deletion.
+Note: This will have no impact if delete.topic.enable is not set to true.
+Topic kstream-weblog-processing-access-count-per-host-repartition is marked for deletion.
+Note: This will have no impact if delete.topic.enable is not set to true.
+Done.
 ```
