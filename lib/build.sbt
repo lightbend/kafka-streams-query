@@ -32,7 +32,8 @@ licenses := Seq("Apache 2" -> new URL("http://www.apache.org/licenses/LICENSE-2.
 developers := List(
   Developer("debasishg", "Debasish Ghosh", "@debasishg", url("https://github.com/debasishg")),
   Developer("blublinsky", "Boris Lublinsky", "@blublinsky", url("https://github.com/blublinsky")),
-  Developer("maasg", "Gerard Maas", "@maasg", url("https://github.com/maasg"))
+  Developer("maasg", "Gerard Maas", "@maasg", url("https://github.com/maasg")),
+  Developer("seglo", "Sean Glover", "@seglo", url("https://github.com/seglo"))
 )
 
 organizationName := "lightbend"
