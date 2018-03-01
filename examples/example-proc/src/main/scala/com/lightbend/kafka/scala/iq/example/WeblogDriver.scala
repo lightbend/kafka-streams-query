@@ -104,7 +104,7 @@ object WeblogDriver extends WeblogWorkflow {
 
     val topology: Topology = new Topology()
     topology.addSource("Source", config.fromTopic)
-            .addProcessor("Process", WeblogProcessorSupplier, "Source")
+            .addProcessor("Process", () => new WeblogProcessor, "Source")
             .addStateStore(
               new BFStoreBuilder[String](new BFStoreSupplier[String](LOG_COUNT_STATE_STORE, stringSerde, true, changelogConfig)), 
               "Process"
@@ -112,9 +112,4 @@ object WeblogDriver extends WeblogWorkflow {
 
     new KafkaStreams(topology, streamingConfig)
   }
-}
-
-import org.apache.kafka.streams.processor.ProcessorSupplier
-object WeblogProcessorSupplier extends ProcessorSupplier[String, String] {
-  override def get(): WeblogProcessor = new WeblogProcessor()
 }
