@@ -54,7 +54,7 @@ class KeyValueFetcher[K: Decoder, V: Decoder](
       case Success(host) => {
         // key is on another instance. call the other instance to fetch the data.
         if (!thisHost(host)) {
-          logger.warn(s"Key $key is on another instance not on $host - requerying ..")
+          logger.warn(s"Key $key is not on this host. It is on instance $host - requerying ..")
           httpRequester.queryFromHost[V](host, path)
         } else {
           // key is on this instance
@@ -152,7 +152,7 @@ class KeyValueFetcher[K: Decoder, V: Decoder](
       case Success(host) => {
         // key is on another instance. call the other instance to fetch the data.
         if (!thisHost(host)) {
-          logger.warn(s"Key $key is on another instance not on $host - requerying ..")
+          logger.warn(s"Key $key is not on this host. It is on instance $host - requerying ..")
           httpRequester.queryFromHost[List[(Long, V)]](host, path)
         } else {
           // key is on this instance
