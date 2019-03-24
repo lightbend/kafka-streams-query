@@ -7,4 +7,6 @@ Library offering http based query on top of Kafka Streams Interactive Queries. T
 1. The core library, as described [here](lib/README.md)
 2. A couple of example implementations, as described [here](examples/example-dsl/README.md) and [here](examples/example-proc/README.md)
 
-Please go through the above links to know more about the library.
+Please go through the above links to learn more about the library.
+
+> **NOTE:** This functionality may now exist in Kafka Streams itself. Check its current capabilities before introducing this library to your projects.
