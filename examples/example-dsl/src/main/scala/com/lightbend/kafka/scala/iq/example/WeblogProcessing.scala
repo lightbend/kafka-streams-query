@@ -20,17 +20,18 @@ import com.lightbend.kafka.scala.iq.services.{ MetadataService, LocalStateStoreQ
 import config.KStreamConfig._
 import http.{ WeblogDSLHttpService, SummaryInfoFetcher }
 import models.{LogParseUtil, LogRecord}
+import serializers.LogRecordSerde
 
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
 
 import org.apache.kafka.clients.consumer.ConsumerConfig
-import org.apache.kafka.common.serialization.Serdes
+import org.apache.kafka.common.serialization.{ Serdes, Serde }
 import org.apache.kafka.streams.kstream._
-import org.apache.kafka.streams.Consumed
 import org.apache.kafka.streams.state.HostInfo
 import org.apache.kafka.streams.{KafkaStreams, StreamsConfig}
 
 import com.lightbend.kafka.scala.streams._
+import ImplicitConversions._
 
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
@@ -94,7 +95,7 @@ object WeblogProcessing extends WeblogWorkflow with AppSerializers with FailFast
       }
 
       settings.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.ByteArray.getClass.getName)
-      settings.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String.getClass.getName)
+      settings.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, classOf[LogRecordSerde].getName)
 
       // setting offset reset to earliest so that we can re-run the demo code with the same pre-loaded data
       // Note: To re-run the demo, you need to use the offset reset tool:
@@ -123,8 +124,9 @@ object WeblogProcessing extends WeblogWorkflow with AppSerializers with FailFast
 
     //
     // assumption : the topic contains serialized records of LogRecord (serialized through logRecordSerde)
-    val logRecords = 
-      builder.stream(List(config.toTopic), Consumed.`with`(byteArraySerde, logRecordSerde))
+    // will use default serializers from config
+
+    val logRecords = builder.stream[Array[Byte], LogRecord](config.toTopic)
 
     generateAvro(logRecords, config)
     hostCountSummary(logRecords, config)
@@ -139,6 +141,7 @@ object WeblogProcessing extends WeblogWorkflow with AppSerializers with FailFast
   def generateLogRecords(config: ConfigData)(implicit builder: StreamsBuilderS): Unit = {
 
     // will read network data from `fromTopic`
+
     val logs = builder.stream[Array[Byte], String](config.fromTopic)
 
     def predicateValid: (Array[Byte], Extracted) => Boolean = { (_, value) =>
@@ -167,15 +170,16 @@ object WeblogProcessing extends WeblogWorkflow with AppSerializers with FailFast
     filtered(0).mapValues {
       case ValidLogRecord(r) => r
       case _ => ??? // should never happen since we pre-emptively filtered with `branch`
-    }.to(config.toTopic, Produced.`with`(byteArraySerde, logRecordSerde))
+    }.to(config.toTopic)  // will use default serde
 
     // push the extraction errors
+
     filtered(1).mapValues {
       case ValueError(_, v) =>
         val writer = new StringWriter()
         (writer.toString, v)
       case _ => ??? // should never happen since we pre-emptively filtered with `branch`
-    }.to(config.errorTopic, Produced.`with`(byteArraySerde, tuple2StringSerde))
+    }.to(config.errorTopic) 
   }
 
   sealed abstract class Extracted { }
@@ -183,8 +187,10 @@ object WeblogProcessing extends WeblogWorkflow with AppSerializers with FailFast
   final case class ValueError(exception: Throwable, originalRecord: String) extends Extracted
 
   def generateAvro(logRecords: KStreamS[Array[Byte], LogRecord], config: ConfigData): Unit = {
+    implicit val lgra = logRecordAvroSerde(config.schemaRegistryUrl)
+
     logRecords.mapValues(makeAvro)
-      .to(config.avroTopic, Produced.`with`(byteArraySerde, logRecordAvroSerde(config.schemaRegistryUrl)))
+      .to(config.avroTopic) 
   }
 
   /**
@@ -211,21 +217,21 @@ object WeblogProcessing extends WeblogWorkflow with AppSerializers with FailFast
     val groupedStream =
       logRecords.mapValues(_.host)
         .map((_, value) => (value, value))
-        .groupByKey(Serialized.`with`(stringSerde, stringSerde))
+        .groupByKey
     
     // since this is a KTable (changelog stream), only the latest summarized information
     // for a host will be the correct one - all earlier records will be considered out of date
     //
     // materialize the summarized information into a topic
     groupedStream.count(ACCESS_COUNT_PER_HOST_STORE, Some(stringSerde))
-      .toStream.to(config.summaryAccessTopic, Produced.`with`(stringSerde, longSerde))
+      .toStream.to(config.summaryAccessTopic)
 
     groupedStream.windowedBy(TimeWindows.of(60000))
       .count(WINDOWED_ACCESS_COUNT_PER_HOST_STORE, Some(stringSerde))
-      .toStream.to(config.windowedSummaryAccessTopic, Produced.`with`(windowedStringSerde, longSerde))
+      .toStream.to(config.windowedSummaryAccessTopic) 
 
     // print the topic info (for debugging)
-    builder.stream(List(config.summaryAccessTopic), Consumed.`with`(stringSerde, longSerde))
+    builder.stream[String, Long](config.summaryAccessTopic)
       .print(Printed.toSysOut[String, Long].withKeyValueMapper { new KeyValueMapper[String, Long, String]() {
         def apply(key: String, value: Long) = s"""$key / $value"""
       }})
@@ -235,10 +241,11 @@ object WeblogProcessing extends WeblogWorkflow with AppSerializers with FailFast
     * Aggregate value of payloadSize per host
     */
   def totalPayloadPerHostSummary(logRecords: KStreamS[Array[Byte], LogRecord], config: ConfigData)(implicit builder: StreamsBuilderS): Unit = {
+
     val groupedStream =
       logRecords.mapValues(record => (record.host, record.payloadSize))
         .map { case (_, (host, size)) => (host, size) }
-        .groupByKey(Serialized.`with`(stringSerde, longSerde))
+        .groupByKey
 
     // materialize the summarized information into a topic
     groupedStream
@@ -249,7 +256,7 @@ object WeblogProcessing extends WeblogWorkflow with AppSerializers with FailFast
           .withKeySerde(stringSerde)
           .withValueSerde(longSerde)
       )
-      .toStream.to(config.summaryPayloadTopic, Produced.`with`(stringSerde, longSerde))
+      .toStream.to(config.summaryPayloadTopic)
 
     groupedStream
       .windowedBy(TimeWindows.of(60000))
@@ -260,9 +267,9 @@ object WeblogProcessing extends WeblogWorkflow with AppSerializers with FailFast
           .withKeySerde(stringSerde)
           .withValueSerde(longSerde)
       )
-      .toStream.to(config.windowedSummaryPayloadTopic, Produced.`with`(windowedStringSerde, longSerde))
+      .toStream.to(config.windowedSummaryPayloadTopic)
 
-    builder.stream(List(config.summaryPayloadTopic), Consumed.`with`(stringSerde, longSerde))
+    builder.stream[String, Long](config.summaryPayloadTopic)
       .print(Printed.toSysOut[String, Long].withKeyValueMapper { new KeyValueMapper[String, Long, String]() {
         def apply(key: String, value: Long) = s"""$key / $value"""
       }})

@@ -1,5 +1,5 @@
 object Versions {
-  val ksVersion = "0.1.2"
+  val ksVersion = "0.1.3"
   val kqVersion = "0.1.1"
   val scala2_12Version = "2.12.4"
   val scala2_11Version = "2.11.11"
