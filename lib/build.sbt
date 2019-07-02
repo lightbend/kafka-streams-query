@@ -4,7 +4,7 @@ name := "kafka-streams-query"
 
 organization := "com.lightbend"
 
-version := "0.1.1"
+version := "0.2.0"
 
 scalaVersion := Versions.scalaVersion
 
