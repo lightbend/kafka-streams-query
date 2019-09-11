@@ -5,6 +5,8 @@
 package com.lightbend.kafka.scala.iq
 package services
 
+import java.time.Instant
+
 import org.apache.kafka.streams.KafkaStreams
 import org.apache.kafka.streams.state.{QueryableStoreType, QueryableStoreTypes, ReadOnlyKeyValueStore, ReadOnlyWindowStore}
 
@@ -92,8 +94,24 @@ class LocalStateStoreQuery[K, V] extends LazyLogging {
 
   /**
    * Query for a window
+   * @deprecated Use {@link #queryWindowedStateStore(KafkaStraems, store, key, Instant, Instant)} instead
    */
   def queryWindowedStateStore(streams: KafkaStreams, store: String, key: K, fromTime: Long, toTime: Long)
+    (implicit ex: ExecutionContext, as: ActorSystem): Future[List[(Long, V)]] = {
+
+    val q: QueryableStoreType[ReadOnlyWindowStore[K, V]] = QueryableStoreTypes.windowStore()
+
+    _retry(streams.store(store, q)).map(
+      _.fetch(key, fromTime, toTime)
+       .asScala
+       .toList
+       .map(kv => (Long2long(kv.key), kv.value)))
+  }
+
+  /**
+   * Query for a window
+   */
+  def queryWindowedStateStore(streams: KafkaStreams, store: String, key: K, fromTime: Instant, toTime: Instant)
     (implicit ex: ExecutionContext, as: ActorSystem): Future[List[(Long, V)]] = {
 
     val q: QueryableStoreType[ReadOnlyWindowStore[K, V]] = QueryableStoreTypes.windowStore()

@@ -8,7 +8,10 @@ package serializers
 import org.apache.kafka.common.serialization._
 import org.apache.kafka.streams.kstream._
 
-trait SerDeserializer[T] extends Serializer[T] with Deserializer[T]
+trait SerDeserializer[T] extends Serializer[T] with Deserializer[T] {
+  override def configure(configs: java.util.Map[String, _], isKey: Boolean): Unit = {}
+  override def close(): Unit = {}
+}
 
 trait Serializers {
   final val stringSerializer = new StringSerializer()

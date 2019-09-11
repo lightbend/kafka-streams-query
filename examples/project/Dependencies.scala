@@ -6,7 +6,7 @@ object Dependencies {
 
   object Common {
   
-    val ks              = "com.lightbend"                %% "kafka-streams-scala"      % ksVersion exclude("org.slf4j", "slf4j-log4j12")
+    val kafkaStreams    = "org.apache.kafka"              % "kafka-streams"            % kafkaVersion
     val kq              = "com.lightbend"                %% "kafka-streams-query"      % kqVersion exclude("org.slf4j", "slf4j-log4j12")
     val alpakka         = "com.lightbend.akka"           %% "akka-stream-alpakka-file" % alpakkaFileVersion
     val reactiveKafka   = "com.typesafe.akka"            %% "akka-stream-kafka"        % reactiveKafkaVersion
@@ -40,7 +40,7 @@ object Dependencies {
     val kafka           = "org.apache.kafka"             %% "kafka"                    % kafkaVersion excludeAll(ExclusionRule("org.slf4j", "slf4j-log4j12"), ExclusionRule("org.apache.zookeeper", "zookeeper")) 
   }
 
-  val commonDependencies: Seq[ModuleID] = Seq(Common.ks,
+  val commonDependencies: Seq[ModuleID] = Seq(Common.kafkaStreams,
     Common.kq,
     Common.alpakka,
     Common.reactiveKafka,

@@ -3,7 +3,7 @@ import NativePackagerHelper._
 
 name := "QueryExampleProject-root"
 
-version in ThisBuild := "0.1.1"
+version in ThisBuild := "0.2.0"
 
 scalaVersion := Versions.scalaVersion
 
