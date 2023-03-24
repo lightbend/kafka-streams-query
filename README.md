@@ -1,4 +1,7 @@
-# HTTP Endpoints for Interactive Queries for Kafka Streams
+# This library is not maintained anymore.
+
+
+### HTTP Endpoints for Interactive Queries for Kafka Streams
 
 [![Build Status](https://secure.travis-ci.org/lightbend/kafka-streams-query.png)](http://travis-ci.org/lightbend/kafka-streams-query)
 
